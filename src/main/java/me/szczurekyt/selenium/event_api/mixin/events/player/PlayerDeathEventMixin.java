@@ -15,10 +15,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.Packet;
 import net.minecraft.network.packet.s2c.play.DeathMessageS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.network.ServerRecipeBook;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
 @Mixin(ServerPlayerEntity.class)
 abstract class PlayerDeathEventServerPlayerMixin extends PlayerEntity implements PlayerDeathEventHolder {
 
+    @Shadow @Final private ServerRecipeBook recipeBook;
     PlayerDeathEvent lastSeleniumDeathEvent;
 
     public PlayerDeathEventServerPlayerMixin(World world, BlockPos pos, float yaw, GameProfile profile) {
@@ -50,6 +53,21 @@ abstract class PlayerDeathEventServerPlayerMixin extends PlayerEntity implements
         if (! (packet instanceof DeathMessageS2CPacket castPacket)) return packet;
         lastSeleniumDeathEvent = handlePacket(castPacket.getMessage());
         return new DeathMessageS2CPacket(castPacket.getEntityId(), castPacket.getKillerId(), lastSeleniumDeathEvent.getDeathMessage());
+    }
+
+    @ModifyArg(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;sendToTeam(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/text/Text;)V"), index = 1)
+    private Text modifyTeamDeathMessage(Text message) {
+        return lastSeleniumDeathEvent.getDeathMessage();
+    }
+
+    @ModifyArg(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;sendToOtherTeams(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/text/Text;)V"), index = 1)
+    private Text modifyOtherTeamDeathMessage(Text message) {
+        return lastSeleniumDeathEvent.getDeathMessage();
+    }
+
+    @ModifyArg(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"), index = 0)
+    private Text modifyDeathMessage(Text message) {
+        return lastSeleniumDeathEvent.getDeathMessage();
     }
 
     private PlayerDeathEvent handlePacket(Text text) {
