@@ -4,6 +4,11 @@ import com.mojang.authlib.GameProfile;
 import me.szczurekyt.selenium.event_api.api.SeleniumEventAPI;
 import me.szczurekyt.selenium.event_api.events.player.PlayerDeathEvent;
 import me.szczurekyt.selenium.event_api.mixin.invokers.PlayerEntityInvoker;
+import me.szczurekyt.selenium.event_api.mixinhelpers.PlayerDeathEventHolder;
+import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -15,14 +20,17 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mixin(ServerPlayerEntity.class)
-abstract class PlayerDeathEventServerPlayerMixin extends PlayerEntity{
+abstract class PlayerDeathEventServerPlayerMixin extends PlayerEntity implements PlayerDeathEventHolder {
 
     PlayerDeathEvent lastSeleniumDeathEvent;
 
@@ -52,10 +60,35 @@ abstract class PlayerDeathEventServerPlayerMixin extends PlayerEntity{
             drops.addAll(inventory.main);
             drops.addAll(inventory.armor);
             drops.addAll(inventory.offHand);
+            // Filter ou items with vanishing curse
+            drops = drops.stream().filter(itemStack -> !(!itemStack.isEmpty() && EnchantmentHelper.hasVanishingCurse(itemStack))).collect(Collectors.toList());
         }
-        PlayerDeathEvent event = new PlayerDeathEvent(self, drops, text, ((PlayerEntityInvoker) self).getXpToDrop(this));
+        PlayerDeathEvent event = new PlayerDeathEvent(self, drops, text, ((PlayerEntityInvoker) self).invokeGetXpToDrop(this));
         SeleniumEventAPI.getInstance().callEvent(event);
         return event;
     }
 
+    @Override
+    public PlayerDeathEvent getDeathEvent() {
+        return lastSeleniumDeathEvent;
+    }
+}
+
+@Mixin(LivingEntity.class)
+abstract class PlayerDeathEventLivingEntityMixin extends Entity {
+
+
+    @Shadow protected abstract int getXpToDrop(PlayerEntity player);
+
+    public PlayerDeathEventLivingEntityMixin(EntityType<?> type, World world) {
+        super(type, world);
+    }
+
+    @Redirect(method = "dropXp", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;getXpToDrop(Lnet/minecraft/entity/player/PlayerEntity;)I"))
+    private int injectExp(LivingEntity instance, PlayerEntity player) {
+        if (instance instanceof PlayerDeathEventHolder) {
+            return ((PlayerDeathEventHolder) instance).getDeathEvent().getDroppedExp();
+        }
+        return getXpToDrop(player);
+    }
 }

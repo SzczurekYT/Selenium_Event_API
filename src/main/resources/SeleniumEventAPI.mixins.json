@@ -4,6 +4,7 @@
   "package": "me.szczurekyt.selenium.event_api.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "events.player.PlayerDeathEventLivingEntityMixin",
     "events.player.PlayerDeathEventServerPlayerMixin",
     "events.player.PlayerDisconnectEventMixin",
     "events.player.PlayerGameModeChangeEventMixin",

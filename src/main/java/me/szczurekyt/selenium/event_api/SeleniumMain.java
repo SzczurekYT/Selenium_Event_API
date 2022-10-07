@@ -2,9 +2,12 @@ package me.szczurekyt.selenium.event_api;
 
 import me.szczurekyt.selenium.event_api.api.EventListener;
 import me.szczurekyt.selenium.event_api.api.SeleniumEventAPI;
-import me.szczurekyt.selenium.event_api.events.player.PlayerDisconnectEvent;
-import me.szczurekyt.selenium.event_api.events.player.PlayerGameModeChangeEvent;
+import me.szczurekyt.selenium.event_api.events.player.PlayerDeathEvent;
 import net.fabricmc.api.ModInitializer;
+import net.minecraft.network.MessageType;
+import net.minecraft.server.PlayerManager;
+import net.minecraft.text.LiteralText;
+import net.minecraft.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +23,12 @@ public class SeleniumMain implements ModInitializer {
     }
 
     @EventListener
-    public void cancelGameMode(PlayerDisconnectEvent event) {
-        event.getPlayer().kill();
+    public void testDeath(PlayerDeathEvent event) {
+        PlayerManager manager = event.getPlayer().getServer().getPlayerManager();
+        manager.broadcast(event.getDeathMessage(), MessageType.SYSTEM, Util.NIL_UUID);
+        manager.broadcast(new LiteralText(Integer.toString(event.getDroppedExp())), MessageType.SYSTEM, Util.NIL_UUID);
+        event.setDroppedExp(1000);
+        manager.broadcast(new LiteralText(event.getDrops().toString()), MessageType.SYSTEM, Util.NIL_UUID);
     }
 
 }
