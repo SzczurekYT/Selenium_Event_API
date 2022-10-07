@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "selenium_event_api",
+  "version": "${version}",
+
+  "name": "Selenium Event API",
+  "description": "This is a library mod that allows other to create mods more easily!",
+  "authors": [
+    "Burzowy_Szczurek"
+  ],
+
+  "license": "MIT",
+  "icon": "assets/selenium/event_api/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "me.szczurekyt.selenium.event_api.SeleniumMain"
+    ]
+  },
+  "mixins": [
+    "seleniumeventapi.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.14.6",
+    "minecraft": "~1.18.2",
+    "java": ">=17"
+  }
+}

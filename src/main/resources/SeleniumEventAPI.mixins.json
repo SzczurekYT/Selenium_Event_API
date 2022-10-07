@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.szczurekyt.selenium.event_api.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "events.player.PlayerDeathEventServerPlayerMixin",
+    "events.player.PlayerDisconnectEventMixin",
+    "events.player.PlayerGameModeChangeEventMixin",
+    "events.player.PlayerJoinEventMixin",
+    "invokers.PlayerEntityInvoker"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
