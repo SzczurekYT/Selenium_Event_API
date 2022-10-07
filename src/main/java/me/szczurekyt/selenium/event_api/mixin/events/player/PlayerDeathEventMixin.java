@@ -55,21 +55,6 @@ abstract class PlayerDeathEventServerPlayerMixin extends PlayerEntity implements
         return new DeathMessageS2CPacket(castPacket.getEntityId(), castPacket.getKillerId(), lastSeleniumDeathEvent.getDeathMessage());
     }
 
-    @ModifyArg(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;sendToTeam(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/text/Text;)V"), index = 1)
-    private Text modifyTeamDeathMessage(Text message) {
-        return lastSeleniumDeathEvent.getDeathMessage();
-    }
-
-    @ModifyArg(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;sendToOtherTeams(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/text/Text;)V"), index = 1)
-    private Text modifyOtherTeamDeathMessage(Text message) {
-        return lastSeleniumDeathEvent.getDeathMessage();
-    }
-
-    @ModifyArg(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"), index = 0)
-    private Text modifyDeathMessage(Text message) {
-        return lastSeleniumDeathEvent.getDeathMessage();
-    }
-
     private PlayerDeathEvent handlePacket(Text text) {
         ServerPlayerEntity self = (ServerPlayerEntity)(Object)this;
         List<ItemStack> drops = new ArrayList<>();
@@ -84,6 +69,21 @@ abstract class PlayerDeathEventServerPlayerMixin extends PlayerEntity implements
         PlayerDeathEvent event = new PlayerDeathEvent(self, drops, text, ((PlayerEntityInvoker) self).invokeGetXpToDrop(this));
         SeleniumEventAPI.getInstance().callEvent(event);
         return event;
+    }
+
+    @ModifyArg(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;sendToTeam(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/text/Text;)V"), index = 1)
+    private Text modifyTeamDeathMessage(Text message) {
+        return lastSeleniumDeathEvent.getDeathMessage();
+    }
+
+    @ModifyArg(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;sendToOtherTeams(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/text/Text;)V"), index = 1)
+    private Text modifyOtherTeamDeathMessage(Text message) {
+        return lastSeleniumDeathEvent.getDeathMessage();
+    }
+
+    @ModifyArg(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"), index = 0)
+    private Text modifyDeathMessage(Text message) {
+        return lastSeleniumDeathEvent.getDeathMessage();
     }
 
     @Override
@@ -108,5 +108,26 @@ abstract class PlayerDeathEventLivingEntityMixin extends Entity {
             return ((PlayerDeathEventHolder) instance).getDeathEvent().getDroppedExp();
         }
         return getXpToDrop(player);
+    }
+}
+
+@Mixin(PlayerEntity.class)
+abstract class PlayerDeathEventPlayerEntityMixin extends LivingEntity {
+
+
+    protected PlayerDeathEventPlayerEntityMixin(EntityType<? extends LivingEntity> entityType, World world) {
+        super(entityType, world);
+    }
+
+    @Redirect(method = "dropInventory", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerInventory;dropAll()V"))
+    private void injectDrops(PlayerInventory instance) {
+        if (this instanceof PlayerDeathEventHolder) {
+            List<ItemStack> drops = ((PlayerDeathEventHolder) this).getDeathEvent().getDrops();
+            for (ItemStack itemStack: drops) {
+                (((PlayerEntity)(Object)this)).dropItem(itemStack, true, false);
+            }
+            return;
+        }
+        instance.dropAll();
     }
 }

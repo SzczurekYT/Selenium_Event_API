@@ -4,6 +4,8 @@ import me.szczurekyt.selenium.event_api.api.EventListener;
 import me.szczurekyt.selenium.event_api.api.SeleniumEventAPI;
 import me.szczurekyt.selenium.event_api.events.player.PlayerDeathEvent;
 import net.fabricmc.api.ModInitializer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.network.MessageType;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.text.LiteralText;
@@ -25,12 +27,7 @@ public class SeleniumMain implements ModInitializer {
 
     @EventListener
     public void testDeath(PlayerDeathEvent event) {
-        PlayerManager manager = event.getPlayer().getServer().getPlayerManager();
-        manager.broadcast(event.getDeathMessage(), MessageType.SYSTEM, Util.NIL_UUID);
-        event.setDeathMessage(new LiteralText("Siema, ktoś dedł chyba?").formatted(Formatting.BLUE));
-        manager.broadcast(new LiteralText(Integer.toString(event.getDroppedExp())), MessageType.SYSTEM, Util.NIL_UUID);
-        event.setDroppedExp(1000);
-        manager.broadcast(new LiteralText(event.getDrops().toString()), MessageType.SYSTEM, Util.NIL_UUID);
+        event.getDrops().add(new ItemStack(Items.TNT));
     }
 
 }

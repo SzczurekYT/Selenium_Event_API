@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "events.player.PlayerDeathEventLivingEntityMixin",
+    "events.player.PlayerDeathEventPlayerEntityMixin",
     "events.player.PlayerDeathEventServerPlayerMixin",
     "events.player.PlayerDisconnectEventMixin",
     "events.player.PlayerGameModeChangeEventMixin",
