@@ -10,16 +10,16 @@
   ],
 
   "license": "MIT",
-  "icon": "assets/selenium/event_api/icon.png",
+  "icon": "assets/selenium/eventapi/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "me.szczurekyt.selenium.event_api.SeleniumMain"
+      "yt.szczurek.selenium.eventapi.SeleniumMod"
     ]
   },
   "mixins": [
-    "seleniumeventapi.mixins.json"
+    "SeleniumEventAPI.mixins.json"
   ],
 
   "depends": {
